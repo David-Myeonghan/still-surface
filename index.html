@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>고요한 표면 · Still Surface</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #05070d; overflow: hidden; }
+    #scene { display: block; width: 100vw; height: 100vh; }
+    #boot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #05070d; color: #cdd6ff; font-family: system-ui, sans-serif; }
+    #boot button { padding: 14px 28px; font-size: 16px; border: 1px solid #3a4670; background: #1a2036; color: #cdd6ff; border-radius: 10px; cursor: pointer; }
+    #boot button:hover { background: #232b48; }
+  </style>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+  <div id="boot"><button id="bootStart">▶ 탐사 시작</button></div>
+  <div id="hud"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
