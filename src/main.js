@@ -11,6 +11,7 @@ import { createGame, tickScan, scanProgress } from './game/state.js';
 import { placeArtifacts } from './gen/artifacts.js';
 import { HUD } from './ui/HUD.js';
 import { Finale } from './game/finale.js';
+import { Audio } from './audio/Audio.js';
 import lore from '../data/lore.js';
 
 const SEED = 1337;
@@ -28,6 +29,7 @@ const artifactObjs = buildArtifacts(scene, SEED);
 const game = createGame(placeArtifacts(SEED), { scanSeconds: 2.5, radius: 7 });
 const hud = new HUD();
 const finale = new Finale(scene, sky.mat);
+const audio = new Audio();
 
 const post = new Post(engine.renderer, scene, camera);
 
@@ -60,14 +62,18 @@ function tick(now) {
     camera.quaternion.copy(player.quat);
 
     // 스캔 (F 홀드)
-    const { justScanned } = tickScan(game, { x: player.pos.x, z: player.pos.z }, input.held('KeyF'), dt);
+    const holdingF = input.held('KeyF');
+    const { justScanned } = tickScan(game, { x: player.pos.x, z: player.pos.z }, holdingF, dt);
+    audio.scanTone(game.scanning != null && holdingF, scanProgress(game));
     if (justScanned != null) {
       const obj = artifactObjs.find((o) => o.id === justScanned);
       if (obj) markScanned(obj);
       hud.showLore(lore[justScanned] || '');
+      audio.discovery();
       if (game.status === 'complete') {
         finale.start(player.pos.x, player.pos.z, height(player.pos.x, player.pos.z, SEED));
         hud.enterFinale();
+        audio.finale();
       }
     }
     // 코어 회전(살아있는 느낌)
@@ -83,6 +89,7 @@ document.getElementById('bootStart').addEventListener('click', () => {
   document.getElementById('boot').style.display = 'none';
   started = true;
   hud.show();
+  audio.start();
 });
 
 requestAnimationFrame(tick);
