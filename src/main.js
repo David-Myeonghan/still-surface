@@ -4,17 +4,18 @@ import { Input } from './core/Input.js';
 import { Player } from './core/Player.js';
 import { height } from './gen/terrain.js';
 import { buildTerrain } from './gfx/terrainMesh.js';
+import { buildSky } from './gfx/sky.js';
 
 const SEED = 1337;
 
 const engine = new Engine(document.getElementById('scene'));
 const { scene, camera } = engine;
-scene.background = new THREE.Color(0x223a5a); // 임시 (T10 하늘로 교체)
 scene.add(new THREE.HemisphereLight(0x9fb4ff, 0x3a2c22, 1.0));
 const sun = new THREE.DirectionalLight(0xffe6c0, 1.6);
 sun.position.set(120, 90, -60);
 scene.add(sun);
 
+buildSky(scene, SEED);
 scene.add(buildTerrain(SEED));
 
 const input = new Input(document.getElementById('scene'));
