@@ -1,0 +1,25 @@
+.hud { position: fixed; inset: 0; pointer-events: none; font-family: system-ui, -apple-system, sans-serif; color: #eaf2ff; display: none; }
+.hud.on { display: block; }
+
+.progress { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); font-size: 15px; font-weight: 700; letter-spacing: 2px; color: #cfe0ff; text-shadow: 0 1px 6px #000; }
+
+.compass { position: absolute; top: 44px; left: 50%; transform: translateX(-50%); text-align: center; }
+.needle { font-size: 22px; color: #7ff4ff; text-shadow: 0 0 10px #3fe0ff; transition: transform 0.08s linear; }
+.cdist { font-size: 11px; color: #9fb4d8; margin-top: 2px; text-shadow: 0 1px 4px #000; }
+
+.prompt { position: absolute; bottom: 84px; left: 50%; transform: translateX(-50%); font-size: 14px; color: #dfe8ff; background: rgba(10,14,26,0.55); padding: 7px 14px; border-radius: 20px; opacity: 0; transition: opacity 0.2s; }
+.prompt.on { opacity: 1; }
+.prompt b { color: #7ff4ff; }
+
+.ring { position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%); width: 74px; height: 74px; opacity: 0; transition: opacity 0.15s; }
+.ring.on { opacity: 1; }
+.ring .rbg { fill: none; stroke: rgba(255,255,255,0.15); stroke-width: 5; }
+.ring .rfill { fill: none; stroke: #7ff4ff; stroke-width: 6; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; filter: drop-shadow(0 0 5px #3fe0ff); stroke-dasharray: 276.5; stroke-dashoffset: 276.5; }
+
+.lore { position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%); max-width: 520px; width: 82%; background: rgba(8,12,22,0.82); border: 1px solid rgba(127,244,255,0.35); border-radius: 12px; padding: 18px 22px; font-size: 15px; line-height: 1.6; color: #eaf2ff; text-align: center; opacity: 0; transition: opacity 0.5s; box-shadow: 0 8px 40px rgba(0,0,0,0.5); }
+.lore.on { opacity: 1; }
+
+.ending { position: fixed; inset: 0; background: radial-gradient(circle at 50% 40%, rgba(127,244,255,0.15), rgba(5,7,13,0.92)); display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.ending.on { display: flex; }
+.ending h1 { font-size: 44px; letter-spacing: 6px; color: #cfe0ff; text-shadow: 0 0 30px #3fe0ff; margin: 0; }
+.ending p { font-size: 18px; color: #aebfe0; margin-top: 14px; }

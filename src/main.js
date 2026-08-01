@@ -9,6 +9,7 @@ import { buildArtifacts, markScanned } from './gfx/artifactsGfx.js';
 import { Post } from './gfx/postfx.js';
 import { createGame, tickScan, scanProgress } from './game/state.js';
 import { placeArtifacts } from './gen/artifacts.js';
+import { HUD } from './ui/HUD.js';
 import lore from '../data/lore.js';
 
 const SEED = 1337;
@@ -24,6 +25,7 @@ buildSky(scene, SEED);
 scene.add(buildTerrain(SEED));
 const artifactObjs = buildArtifacts(scene, SEED);
 const game = createGame(placeArtifacts(SEED), { scanSeconds: 2.5, radius: 7 });
+const hud = new HUD();
 
 const post = new Post(engine.renderer, scene, camera);
 
@@ -51,20 +53,21 @@ function tick(now) {
     if (justScanned != null) {
       const obj = artifactObjs.find((o) => o.id === justScanned);
       if (obj) markScanned(obj);
-      onDiscovery(justScanned);
+      hud.showLore(lore[justScanned] || '');
     }
-    // 코어 회전(살아있는 느낌) + 스캔 중 강조
+    // 코어 회전(살아있는 느낌)
     const t = performance.now() * 0.001;
     for (const o of artifactObjs) o.core.rotation.y = t * 0.8;
+
+    hud.update(game, player, dt);
   }
   post.render();
 }
 
-let onDiscovery = (id) => { console.log('discovered', id, lore[id]); };
-
 document.getElementById('bootStart').addEventListener('click', () => {
   document.getElementById('boot').style.display = 'none';
   started = true;
+  hud.show();
 });
 
 requestAnimationFrame(tick);
