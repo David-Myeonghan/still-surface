@@ -2,27 +2,24 @@ import * as THREE from 'three';
 import { Engine } from './core/Engine.js';
 import { Input } from './core/Input.js';
 import { Player } from './core/Player.js';
+import { height } from './gen/terrain.js';
+import { buildTerrain } from './gfx/terrainMesh.js';
+
+const SEED = 1337;
 
 const engine = new Engine(document.getElementById('scene'));
 const { scene, camera } = engine;
-scene.background = new THREE.Color(0x0a0e1a);
-scene.add(new THREE.HemisphereLight(0x88aaff, 0x223344, 1.1));
-const sun = new THREE.DirectionalLight(0xfff2d8, 1.4);
-sun.position.set(60, 80, 30);
+scene.background = new THREE.Color(0x223a5a); // 임시 (T10 하늘로 교체)
+scene.add(new THREE.HemisphereLight(0x9fb4ff, 0x3a2c22, 1.0));
+const sun = new THREE.DirectionalLight(0xffe6c0, 1.6);
+sun.position.set(120, 90, -60);
 scene.add(sun);
 
-// 임시 참조 큐브들 (이동감 확인용, T9에서 지형으로 교체)
-const flat = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), new THREE.MeshStandardMaterial({ color: 0x2a3550 }));
-flat.rotateX(-Math.PI / 2);
-scene.add(flat);
-for (let i = 0; i < 40; i++) {
-  const c = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), new THREE.MeshStandardMaterial({ color: 0x6ff0ff }));
-  c.position.set((Math.random() - 0.5) * 200, 1, (Math.random() - 0.5) * 200);
-  scene.add(c);
-}
+scene.add(buildTerrain(SEED));
 
 const input = new Input(document.getElementById('scene'));
-const player = new Player(() => 0); // 평지 (T9에서 terrain 주입)
+const player = new Player((x, z) => height(x, z, SEED)); // 지형 접지
+player.pos.set(0, 0, 0);
 
 let last = performance.now();
 const MAX_DT = 1 / 15;
