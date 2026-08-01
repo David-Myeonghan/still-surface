@@ -6,6 +6,7 @@ import { height } from './gen/terrain.js';
 import { buildTerrain } from './gfx/terrainMesh.js';
 import { buildSky } from './gfx/sky.js';
 import { buildArtifacts } from './gfx/artifactsGfx.js';
+import { Post } from './gfx/postfx.js';
 
 const SEED = 1337;
 
@@ -19,6 +20,8 @@ scene.add(sun);
 buildSky(scene, SEED);
 scene.add(buildTerrain(SEED));
 const artifactObjs = buildArtifacts(scene, SEED);
+
+const post = new Post(engine.renderer, scene, camera);
 
 const input = new Input(document.getElementById('scene'));
 const player = new Player((x, z) => height(x, z, SEED)); // 지형 접지
@@ -39,7 +42,7 @@ function tick(now) {
     camera.position.copy(player.eye);
     camera.quaternion.copy(player.quat);
   }
-  engine.render();
+  post.render();
 }
 
 document.getElementById('bootStart').addEventListener('click', () => {

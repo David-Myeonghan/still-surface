@@ -11,15 +11,15 @@ export function buildArtifacts(scene, seed) {
 
     const core = new THREE.Mesh(
       new THREE.OctahedronGeometry(1.6, 0),
-      new THREE.MeshStandardMaterial({ color: 0x6ff0ff, emissive: 0x2fd6ff, emissiveIntensity: 3.2, roughness: 0.3, metalness: 0.1 }),
+      new THREE.MeshStandardMaterial({ color: 0x8ffbff, emissive: 0x5fe8ff, emissiveIntensity: 6.0, roughness: 0.25, metalness: 0.1 }),
     );
     core.position.y = 2.6;
 
     const beam = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.5, 1.4, 140, 14, 1, true),
-      new THREE.MeshBasicMaterial({ color: 0x3fe0ff, transparent: true, opacity: 0.16, side: THREE.DoubleSide, depthWrite: false, fog: false }),
+      new THREE.CylinderGeometry(0.8, 2.0, 150, 16, 1, true),
+      new THREE.MeshBasicMaterial({ color: 0x7ff4ff, transparent: true, opacity: 0.5, side: THREE.DoubleSide, depthWrite: false, fog: false, blending: THREE.AdditiveBlending }),
     );
-    beam.position.y = 70;
+    beam.position.y = 75;
 
     const light = new THREE.PointLight(0x4fe0ff, 8, 40, 2);
     light.position.y = 3;
