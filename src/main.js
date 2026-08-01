@@ -5,6 +5,7 @@ import { Player } from './core/Player.js';
 import { height } from './gen/terrain.js';
 import { buildTerrain } from './gfx/terrainMesh.js';
 import { buildSky } from './gfx/sky.js';
+import { buildArtifacts } from './gfx/artifactsGfx.js';
 
 const SEED = 1337;
 
@@ -17,6 +18,7 @@ scene.add(sun);
 
 buildSky(scene, SEED);
 scene.add(buildTerrain(SEED));
+const artifactObjs = buildArtifacts(scene, SEED);
 
 const input = new Input(document.getElementById('scene'));
 const player = new Player((x, z) => height(x, z, SEED)); // 지형 접지
@@ -48,4 +50,10 @@ document.getElementById('bootStart').addEventListener('click', () => {
 requestAnimationFrame(tick);
 
 // E2E 디버그 훅
-window.__ss = () => ({ pos: { x: player.pos.x, z: player.pos.z }, locked: input.locked, started });
+window.__ss = () => ({
+  pos: { x: player.pos.x, z: player.pos.z },
+  locked: input.locked, started,
+  artifacts: artifactObjs.map((o) => ({ id: o.id, x: o.x, z: o.z })),
+});
+window.__teleport = (x, z) => { player.pos.set(x, 0, z); };
+window.__lookAt = (x, z) => { player.yaw = Math.atan2(x - player.pos.x, z - player.pos.z); player.pitch = -0.05; };
