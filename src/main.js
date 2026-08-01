@@ -5,8 +5,11 @@ import { Player } from './core/Player.js';
 import { height } from './gen/terrain.js';
 import { buildTerrain } from './gfx/terrainMesh.js';
 import { buildSky } from './gfx/sky.js';
-import { buildArtifacts } from './gfx/artifactsGfx.js';
+import { buildArtifacts, markScanned } from './gfx/artifactsGfx.js';
 import { Post } from './gfx/postfx.js';
+import { createGame, tickScan, scanProgress } from './game/state.js';
+import { placeArtifacts } from './gen/artifacts.js';
+import lore from '../data/lore.js';
 
 const SEED = 1337;
 
@@ -20,6 +23,7 @@ scene.add(sun);
 buildSky(scene, SEED);
 scene.add(buildTerrain(SEED));
 const artifactObjs = buildArtifacts(scene, SEED);
+const game = createGame(placeArtifacts(SEED), { scanSeconds: 2.5, radius: 7 });
 
 const post = new Post(engine.renderer, scene, camera);
 
@@ -41,9 +45,22 @@ function tick(now) {
     player.update(dt, input);
     camera.position.copy(player.eye);
     camera.quaternion.copy(player.quat);
+
+    // 스캔 (F 홀드)
+    const { justScanned } = tickScan(game, { x: player.pos.x, z: player.pos.z }, input.held('KeyF'), dt);
+    if (justScanned != null) {
+      const obj = artifactObjs.find((o) => o.id === justScanned);
+      if (obj) markScanned(obj);
+      onDiscovery(justScanned);
+    }
+    // 코어 회전(살아있는 느낌) + 스캔 중 강조
+    const t = performance.now() * 0.001;
+    for (const o of artifactObjs) o.core.rotation.y = t * 0.8;
   }
   post.render();
 }
+
+let onDiscovery = (id) => { console.log('discovered', id, lore[id]); };
 
 document.getElementById('bootStart').addEventListener('click', () => {
   document.getElementById('boot').style.display = 'none';
@@ -53,10 +70,13 @@ document.getElementById('bootStart').addEventListener('click', () => {
 requestAnimationFrame(tick);
 
 // E2E 디버그 훅
+window.__ssGame = game;
 window.__ss = () => ({
   pos: { x: player.pos.x, z: player.pos.z },
   locked: input.locked, started,
-  artifacts: artifactObjs.map((o) => ({ id: o.id, x: o.x, z: o.z })),
+  scanned: game.scanned, total: game.total, status: game.status,
+  progress: scanProgress(game),
+  artifacts: game.artifacts.map((a) => ({ id: a.id, x: a.x, z: a.z, scanned: a.scanned })),
 });
 window.__teleport = (x, z) => { player.pos.set(x, 0, z); };
 window.__lookAt = (x, z) => { player.yaw = Math.atan2(x - player.pos.x, z - player.pos.z); player.pitch = -0.05; };
