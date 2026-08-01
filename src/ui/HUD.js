@@ -33,6 +33,10 @@ export class HUD {
     // 로어 카드 페이드아웃
     if (this._loreTimer > 0) { this._loreTimer -= dt; if (this._loreTimer <= 0) this.lore.classList.remove('on'); }
   }
+  enterFinale() {
+    // 피날레 진입: 플레이 HUD(진행도·나침반·프롬프트·링) 숨김. 로어·엔딩만 유지.
+    for (const el of [this.progress, this.needle, this.cdist, this.prompt, this.ring]) el.style.display = 'none';
+  }
   showLore(text) { this.lore.textContent = text; this.lore.classList.add('on'); this._loreTimer = 6; }
   showEnding() { this.ending.classList.add('on'); }
 }

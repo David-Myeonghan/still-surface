@@ -10,6 +10,7 @@ import { Post } from './gfx/postfx.js';
 import { createGame, tickScan, scanProgress } from './game/state.js';
 import { placeArtifacts } from './gen/artifacts.js';
 import { HUD } from './ui/HUD.js';
+import { Finale } from './game/finale.js';
 import lore from '../data/lore.js';
 
 const SEED = 1337;
@@ -21,11 +22,12 @@ const sun = new THREE.DirectionalLight(0xffe6c0, 1.6);
 sun.position.set(120, 90, -60);
 scene.add(sun);
 
-buildSky(scene, SEED);
+const sky = buildSky(scene, SEED);
 scene.add(buildTerrain(SEED));
 const artifactObjs = buildArtifacts(scene, SEED);
 const game = createGame(placeArtifacts(SEED), { scanSeconds: 2.5, radius: 7 });
 const hud = new HUD();
+const finale = new Finale(scene, sky.mat);
 
 const post = new Post(engine.renderer, scene, camera);
 
@@ -36,11 +38,20 @@ player.pos.set(0, 0, 0);
 let last = performance.now();
 const MAX_DT = 1 / 15;
 let started = false;
+let endingShown = false;
 
 function tick(now) {
   requestAnimationFrame(tick);
   let dt = (now - last) / 1000; last = now; if (dt > MAX_DT) dt = MAX_DT;
   if (document.hidden) return;
+  if (started && finale.active) {
+    finale.update(dt, camera);
+    for (const o of artifactObjs) o.core.rotation.y += dt * 0.8;
+    if (finale.done && !endingShown) { endingShown = true; hud.showEnding(); }
+    post.render();
+    return;
+  }
+
   if (started) {
     const m = input.consumeMouse();
     player.look(m.x, m.y);
@@ -54,6 +65,10 @@ function tick(now) {
       const obj = artifactObjs.find((o) => o.id === justScanned);
       if (obj) markScanned(obj);
       hud.showLore(lore[justScanned] || '');
+      if (game.status === 'complete') {
+        finale.start(player.pos.x, player.pos.z, height(player.pos.x, player.pos.z, SEED));
+        hud.enterFinale();
+      }
     }
     // 코어 회전(살아있는 느낌)
     const t = performance.now() * 0.001;
