@@ -6,6 +6,7 @@ import { height } from './gen/terrain.js';
 import { buildTerrain } from './gfx/terrainMesh.js';
 import { buildSky } from './gfx/sky.js';
 import { buildArtifacts, markScanned } from './gfx/artifactsGfx.js';
+import { buildCharacter, animateRun } from './gfx/Character.js';
 import { Post } from './gfx/postfx.js';
 import { createGame, tickScan, scanProgress } from './game/state.js';
 import { placeArtifacts } from './gen/artifacts.js';
@@ -26,6 +27,8 @@ scene.add(sun);
 const sky = buildSky(scene, SEED);
 scene.add(buildTerrain(SEED));
 const artifactObjs = buildArtifacts(scene, SEED);
+const char = buildCharacter();
+scene.add(char.group);
 const game = createGame(placeArtifacts(SEED), { scanSeconds: 2.5, radius: 7 });
 const hud = new HUD();
 const finale = new Finale(scene, sky.mat);
@@ -58,8 +61,11 @@ function tick(now) {
     const m = input.consumeMouse();
     player.look(m.x, m.y);
     player.update(dt, input);
-    camera.position.copy(player.eye);
-    camera.quaternion.copy(player.quat);
+    camera.position.copy(player.camPos);
+    camera.lookAt(player.headTarget);
+    char.group.position.set(player.pos.x, player.groundY, player.pos.z);
+    char.group.rotation.y = player.facing;
+    animateRun(char.parts, player.stride, player.moving, player.running);
 
     // 스캔 (F 홀드)
     const holdingF = input.held('KeyF');

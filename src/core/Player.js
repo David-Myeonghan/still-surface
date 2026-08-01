@@ -1,6 +1,8 @@
 import * as THREE from 'three';
+import { moveDir, stepAngle, thirdPersonCam } from '../game/locomotion.js';
 
-const EYE = 1.7, WALK = 4.5, RUN = 8.0;
+const HEAD = 1.6, DIST = 5.2, WALK = 4.5, RUN = 8.0;
+const PITCH_MIN = -0.35, PITCH_MAX = 1.25;
 
 export class Player {
   constructor(groundHeight) {
@@ -8,33 +10,47 @@ export class Player {
     this.pos = new THREE.Vector3(0, 0, 0);
     this.vel = new THREE.Vector3();
     this.groundY = 0;
-    this.yaw = 0; this.pitch = 0; this.bob = 0;
-    this.eye = new THREE.Vector3();
-    this.quat = new THREE.Quaternion();
-    this._e = new THREE.Euler(0, 0, 0, 'YXZ');
+    this.yaw = 0;          // 카메라 방위(=시야). HUD 나침반이 사용.
+    this.pitch = 0.35;     // 카메라 고도(약간 위에서 내려다봄).
+    this.facing = 0;       // 몸 방향.
+    this.stride = 0;       // 달리기 보폭 위상.
+    this.moving = false; this.running = false;
+    this.camPos = new THREE.Vector3(0, HEAD, DIST);
+    this.headTarget = new THREE.Vector3();
     this._target = new THREE.Vector3();
   }
   look(dx, dy, sens = 1) {
     this.yaw -= dx * 0.0022 * sens;
-    this.pitch = THREE.MathUtils.clamp(this.pitch - dy * 0.0022 * sens, -1.3, 1.3);
+    this.pitch = THREE.MathUtils.clamp(this.pitch + dy * 0.0022 * sens, PITCH_MIN, PITCH_MAX);
   }
   update(dt, input) {
     const run = input.held('ShiftLeft');
     const speed = run ? RUN : WALK;
     const fwd = (input.held('KeyW') ? 1 : 0) - (input.held('KeyS') ? 1 : 0);
     const str = (input.held('KeyD') ? 1 : 0) - (input.held('KeyA') ? 1 : 0);
-    const sy = Math.sin(this.yaw), cy = Math.cos(this.yaw);
-    let vx = -sy * fwd + cy * str, vz = -cy * fwd - sy * str;
-    const l = Math.hypot(vx, vz); if (l > 1) { vx /= l; vz /= l; }
-    this._target.set(vx * speed, 0, vz * speed);
+    const d = moveDir(fwd, str, this.yaw);
+    this._target.set(d.x * speed, 0, d.z * speed);
     this.vel.lerp(this._target, Math.min(1, dt * 12));
     this.pos.x += this.vel.x * dt; this.pos.z += this.vel.z * dt;
+
     const h = this.groundHeight(this.pos.x, this.pos.z);
     this.groundY += (h - this.groundY) * Math.min(1, dt * 9);
-    const moving = Math.hypot(this.vel.x, this.vel.z) > 0.3;
-    this.bob += dt * (moving ? speed * 1.4 : 0);
-    this.eye.set(this.pos.x, this.groundY + EYE + Math.sin(this.bob * 2) * 0.02 * (moving ? 1 : 0), this.pos.z);
-    this._e.set(this.pitch, this.yaw, 0);
-    this.quat.setFromEuler(this._e);
+
+    const hs = Math.hypot(this.vel.x, this.vel.z);
+    this.moving = hs > 0.3;
+    this.running = run && this.moving;
+    if (this.moving) {
+      // 몸이 속도 방향을 향함(전방 = (-sin,-cos) → target = atan2(-vx,-vz))
+      const target = Math.atan2(-this.vel.x, -this.vel.z);
+      this.facing = stepAngle(this.facing, target, Math.min(1, dt * 10));
+    }
+    this.stride += dt * (this.moving ? hs * 0.9 + 2 : 0);
+
+    // 카메라 리그
+    const ty = this.groundY + HEAD;
+    this.headTarget.set(this.pos.x, ty, this.pos.z);
+    const c = thirdPersonCam(this.pos.x, ty, this.pos.z, this.yaw, this.pitch, DIST);
+    const floor = this.groundHeight(c.x, c.z) + 0.6; // 지면 관통 방지
+    this.camPos.set(c.x, Math.max(c.y, floor), c.z);
   }
 }
