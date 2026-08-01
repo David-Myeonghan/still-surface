@@ -66,6 +66,11 @@ function tick(now) {
     char.group.position.set(player.pos.x, player.groundY, player.pos.z);
     char.group.rotation.y = player.facing;
     animateRun(char.parts, player.stride, player.moving, player.running);
+    const targetFov = player.running ? 82 : 68;
+    if (Math.abs(camera.fov - targetFov) > 0.1) {
+      camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 6);
+      camera.updateProjectionMatrix();
+    }
 
     // 스캔 (F 홀드)
     const holdingF = input.held('KeyF');
@@ -80,6 +85,7 @@ function tick(now) {
         finale.start(player.pos.x, player.pos.z, height(player.pos.x, player.pos.z, SEED));
         hud.enterFinale();
         audio.finale();
+        char.group.visible = false;
       }
     }
     // 코어 회전(살아있는 느낌)
