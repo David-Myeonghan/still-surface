@@ -1,7 +1,8 @@
 import * as THREE from 'three';
-import { moveDir, stepAngle, thirdPersonCam } from '../game/locomotion.js';
+import { moveDir, stepAngle, thirdPersonCam, integrateVertical } from '../game/locomotion.js';
 
-const HEAD = 1.6, DIST = 5.2, WALK = 4.5, RUN = 8.0;
+const HEAD = 1.6, DIST = 5.2, WALK = 4.5, RUN = 9.0;
+const GRAVITY = 6.5, JUMP_V = 6.5, COYOTE = 0.12;
 const PITCH_MIN = -0.35, PITCH_MAX = 1.25;
 
 export class Player {
@@ -15,6 +16,8 @@ export class Player {
     this.facing = 0;       // 몸 방향.
     this.stride = 0;       // 달리기 보폭 위상.
     this.moving = false; this.running = false;
+    this.y = 0; this.vy = 0; this.grounded = true; this.coyote = COYOTE;
+    this.justJumped = false; this.justLanded = false;
     this.camPos = new THREE.Vector3(0, HEAD, DIST);
     this.headTarget = new THREE.Vector3();
     this._target = new THREE.Vector3();
@@ -46,8 +49,16 @@ export class Player {
     }
     this.stride += dt * (this.moving ? hs * 0.9 + 2 : 0);
 
+    // 저중력 수직 물리 (Space 점프)
+    const vr = integrateVertical(
+      { y: this.y, vy: this.vy, grounded: this.grounded, coyote: this.coyote },
+      dt, input.held('Space'), GRAVITY, JUMP_V, COYOTE,
+    );
+    this.y = vr.y; this.vy = vr.vy; this.grounded = vr.grounded; this.coyote = vr.coyote;
+    this.justJumped = vr.justJumped; this.justLanded = vr.justLanded;
+
     // 카메라 리그
-    const ty = this.groundY + HEAD;
+    const ty = this.groundY + HEAD + this.y;
     this.headTarget.set(this.pos.x, ty, this.pos.z);
     const c = thirdPersonCam(this.pos.x, ty, this.pos.z, this.yaw, this.pitch, DIST);
     const floor = this.groundHeight(c.x, c.z) + 0.6; // 지면 관통 방지

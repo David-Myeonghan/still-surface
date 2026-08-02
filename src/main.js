@@ -66,8 +66,8 @@ function tick(now) {
     camera.position.copy(player.camPos);
     camera.lookAt(player.headTarget);
     const hs = Math.hypot(player.vel.x, player.vel.z);
-    avatar.update(dt, player.pos, player.groundY, player.facing, 0,
-      { speed: hs, running: player.running, grounded: true });
+    avatar.update(dt, player.pos, player.groundY, player.facing, player.y,
+      { speed: hs, running: player.running, grounded: player.grounded });
     const targetFov = player.running ? 82 : 68;
     if (Math.abs(camera.fov - targetFov) > 0.1) {
       camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 6);

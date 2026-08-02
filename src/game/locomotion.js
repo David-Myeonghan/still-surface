@@ -18,6 +18,22 @@ export function stepAngle(cur, target, t) {
   return cur + d * k;
 }
 
+// 저중력 수직 적분. v={y,vy,grounded,coyote}. 접지/coyote에서 wantJump면 이륙.
+export function integrateVertical(v, dt, wantJump, g, jumpV, coyoteMax) {
+  let { y, vy, grounded, coyote } = v;
+  let justJumped = false, justLanded = false;
+  coyote = grounded ? coyoteMax : Math.max(0, coyote - dt);
+  if (wantJump && (grounded || coyote > 0)) {
+    vy = jumpV; grounded = false; coyote = 0; justJumped = true;
+  }
+  if (!grounded) {
+    vy -= g * dt;
+    y += vy * dt;
+    if (y <= 0) { y = 0; vy = 0; grounded = true; justLanded = true; }
+  }
+  return { y, vy, grounded, coyote, justJumped, justLanded };
+}
+
 // 타깃점 뒤(yaw 반대)·위(pitch)로 dist 떨어진 카메라 위치.
 export function thirdPersonCam(tx, ty, tz, yaw, pitch, dist) {
   const cp = Math.cos(pitch), sp = Math.sin(pitch);

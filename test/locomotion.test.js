@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { moveDir, stepAngle, thirdPersonCam } from '../src/game/locomotion.js';
+import { moveDir, stepAngle, thirdPersonCam, integrateVertical } from '../src/game/locomotion.js';
 
 const near = (a, b, e = 1e-9) => assert.ok(Math.abs(a - b) < e, `${a} ≈ ${b}`);
 
@@ -46,4 +46,31 @@ test('thirdPersonCam: pitch 0 sits behind (+Z) at target height', () => {
 test('thirdPersonCam: positive pitch raises camera', () => {
   const c = thirdPersonCam(0, 10, 0, 0, 0.5, 5);
   assert.ok(c.y > 10, `y=${c.y} should exceed target y`);
+});
+
+test('integrateVertical: jump from ground sets upward velocity and leaves ground', () => {
+  const r = integrateVertical({ y: 0, vy: 0, grounded: true, coyote: 0.12 }, 0.016, true, 6.5, 6.5, 0.12);
+  assert.ok(r.justJumped, 'justJumped');
+  assert.equal(r.grounded, false);
+  assert.ok(r.vy > 0, `vy=${r.vy}`);
+});
+test('integrateVertical: no double jump while airborne', () => {
+  const r = integrateVertical({ y: 2, vy: 1, grounded: false, coyote: 0 }, 0.016, true, 6.5, 6.5, 0.12);
+  assert.equal(r.justJumped, false);
+});
+test('integrateVertical: gravity brings the jumper back and lands', () => {
+  let v = integrateVertical({ y: 0, vy: 0, grounded: true, coyote: 0.12 }, 0.016, true, 6.5, 6.5, 0.12);
+  let landed = false, maxY = 0, guard = 0;
+  while (!landed && guard++ < 100000) {
+    v = integrateVertical(v, 0.016, false, 6.5, 6.5, 0.12);
+    maxY = Math.max(maxY, v.y);
+    if (v.justLanded) landed = true;
+  }
+  assert.ok(landed, 'eventually lands');
+  assert.equal(v.y, 0);
+  assert.ok(maxY > 2.5 && maxY < 4.0, `peak ${maxY}`);
+});
+test('integrateVertical: coyote lets you jump shortly after leaving ground', () => {
+  const r = integrateVertical({ y: 0, vy: 0, grounded: false, coyote: 0.08 }, 0.016, true, 6.5, 6.5, 0.12);
+  assert.ok(r.justJumped, 'coyote jump');
 });
