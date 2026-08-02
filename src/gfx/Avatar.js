@@ -19,8 +19,9 @@ const FALLBACK = {
   Run: ['Run', 'Walk', 'Idle'],
   Walk: ['Walk', 'Run', 'Idle'],
   Idle: ['Idle', 'Walk', 'Run'],
-  Jump_Idle: ['Jump_Idle', 'Jump', 'Run', 'Idle'],
-  Jump: ['Jump', 'Jump_Idle', 'Run', 'Idle'],
+  // 공중: 전용 점프 클립이 없으면 Idle(발 모은 자세)로 폴백 → 공중에서 발 안 젓음.
+  Jump_Idle: ['Jump_Idle', 'Jump', 'Idle', 'Run'],
+  Jump: ['Jump', 'Jump_Idle', 'Idle', 'Run'],
 };
 
 // 리깅된 GLTF 아바타 로드 + 상태 기반 애니메이션 크로스페이드.

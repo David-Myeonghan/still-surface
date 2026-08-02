@@ -148,6 +148,7 @@ window.__ss = () => ({
   locked: input.locked, started,
   scanned: game.scanned, total: game.total, status: game.status,
   motes: motesCollected, motesTotal: motes.length,
+  y: player.y, grounded: player.grounded,
   progress: scanProgress(game),
   artifacts: game.artifacts.map((a) => ({ id: a.id, x: a.x, z: a.z, scanned: a.scanned })),
 });
