@@ -7,6 +7,7 @@ import { buildTerrain } from './gfx/terrainMesh.js';
 import { buildSky } from './gfx/sky.js';
 import { buildArtifacts, markScanned } from './gfx/artifactsGfx.js';
 import { Avatar } from './gfx/Avatar.js';
+import { createDust } from './gfx/dust.js';
 import { Post } from './gfx/postfx.js';
 import { createGame, tickScan, scanProgress } from './game/state.js';
 import { placeArtifacts } from './gen/artifacts.js';
@@ -31,6 +32,7 @@ const avatar = new Avatar();
 avatar.load(`${import.meta.env.BASE_URL}models/astronaut.glb`)
   .then(() => { scene.add(avatar.group); })
   .catch((e) => console.error('avatar load failed', e));
+const dust = createDust(scene);
 const game = createGame(placeArtifacts(SEED), { scanSeconds: 2.5, radius: 7 });
 const hud = new HUD();
 const finale = new Finale(scene, sky.mat);
@@ -68,6 +70,9 @@ function tick(now) {
     const hs = Math.hypot(player.vel.x, player.vel.z);
     avatar.update(dt, player.pos, player.groundY, player.facing, player.y,
       { speed: hs, running: player.running, grounded: player.grounded });
+    if (player.justJumped) audio.jump();
+    if (player.justLanded) { audio.land(); dust.burst(player.pos.x, player.groundY, player.pos.z); }
+    dust.update(dt);
     const targetFov = player.running ? 82 : 68;
     if (Math.abs(camera.fov - targetFov) > 0.1) {
       camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 6);

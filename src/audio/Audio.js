@@ -74,4 +74,34 @@ export class Audio {
       const g = ctx.createGain(); g.gain.value = 0.25; o.connect(g); g.connect(bus); o.start(t0);
     });
   }
+  // 점프: 짧은 상승 블립.
+  jump() {
+    if (!this.ready) return;
+    const ctx = this.ctx, t = ctx.currentTime;
+    const o = ctx.createOscillator(); o.type = 'sine';
+    o.frequency.setValueAtTime(300, t); o.frequency.exponentialRampToValueAtTime(620, t + 0.16);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.001, t);
+    g.gain.exponentialRampToValueAtTime(0.14, t + 0.02); g.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+    o.connect(g); g.connect(this.master); o.start(t); o.stop(t + 0.24);
+  }
+  // 착지: 낮은 툭.
+  land() {
+    if (!this.ready) return;
+    const ctx = this.ctx, t = ctx.currentTime;
+    const o = ctx.createOscillator(); o.type = 'triangle';
+    o.frequency.setValueAtTime(220, t); o.frequency.exponentialRampToValueAtTime(90, t + 0.14);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.001, t);
+    g.gain.exponentialRampToValueAtTime(0.16, t + 0.01); g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+    o.connect(g); g.connect(this.master); o.start(t); o.stop(t + 0.22);
+  }
+  // 모트 픽업: 맑은 고음 블립.
+  mote() {
+    if (!this.ready) return;
+    const ctx = this.ctx, t = ctx.currentTime;
+    const o = ctx.createOscillator(); o.type = 'triangle';
+    o.frequency.setValueAtTime(880, t); o.frequency.exponentialRampToValueAtTime(1320, t + 0.08);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.001, t);
+    g.gain.exponentialRampToValueAtTime(0.1, t + 0.01); g.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+    o.connect(g); g.connect(this.master); o.start(t); o.stop(t + 0.16);
+  }
 }
