@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { Engine } from './core/Engine.js';
 import { Input } from './core/Input.js';
 import { Player } from './core/Player.js';
@@ -8,6 +9,7 @@ import { buildSky } from './gfx/sky.js';
 import { buildArtifacts, markScanned } from './gfx/artifactsGfx.js';
 import { Avatar } from './gfx/Avatar.js';
 import { createDust } from './gfx/dust.js';
+import { createBlobShadow } from './gfx/blobShadow.js';
 import { placeMotes, collectMotes } from './game/motes.js';
 import { buildMotes } from './gfx/motesGfx.js';
 import { Post } from './gfx/postfx.js';
@@ -26,15 +28,29 @@ scene.add(new THREE.HemisphereLight(0x9fb4ff, 0x3a2c22, 1.0));
 const sun = new THREE.DirectionalLight(0xffe6c0, 1.6);
 sun.position.set(120, 90, -60);
 scene.add(sun);
+// 림라이트: 태양 반대쪽에서 실루엣을 배경과 분리(사실감↑).
+const rim = new THREE.DirectionalLight(0x88aaff, 0.9);
+rim.position.set(-120, 40, 60);
+scene.add(rim);
+// IBL: PBR 재질(특히 바이저)에 반사 환경. 에셋 없이 RoomEnvironment로 생성.
+const pmrem = new THREE.PMREMGenerator(engine.renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.35; // 무드 유지: IBL은 은은하게
 
 const sky = buildSky(scene, SEED);
 scene.add(buildTerrain(SEED));
 const artifactObjs = buildArtifacts(scene, SEED);
 const avatar = new Avatar();
 avatar.load(`${import.meta.env.BASE_URL}models/astronaut.glb`)
-  .then(() => { scene.add(avatar.group); })
+  .then(() => {
+    avatar.group.traverse((o) => {
+      if (o.isMesh && o.material) { o.material.envMapIntensity = 1.2; o.material.needsUpdate = true; }
+    });
+    scene.add(avatar.group);
+  })
   .catch((e) => console.error('avatar load failed', e));
 const dust = createDust(scene);
+const blob = createBlobShadow(scene);
 const game = createGame(placeArtifacts(SEED), { scanSeconds: 2.5, radius: 7 });
 const hud = new HUD();
 const motes = placeMotes(SEED, game.artifacts, (x, z) => height(x, z, SEED));
@@ -75,6 +91,7 @@ function tick(now) {
     const hs = Math.hypot(player.vel.x, player.vel.z);
     avatar.update(dt, player.pos, player.groundY, player.facing, player.y,
       { speed: hs, running: player.running, grounded: player.grounded });
+    blob.update(player.pos.x, player.pos.z, player.groundY, player.y);
     if (player.justJumped) audio.jump();
     if (player.justLanded) { audio.land(); dust.burst(player.pos.x, player.groundY, player.pos.z); }
     dust.update(dt);
@@ -108,6 +125,7 @@ function tick(now) {
         hud.enterFinale();
         audio.finale();
         avatar.setVisible(false);
+        blob.update(0, 0, -9999, 0); // 화면 밖으로
       }
     }
     // 코어 회전(살아있는 느낌)
