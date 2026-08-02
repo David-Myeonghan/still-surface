@@ -77,22 +77,20 @@ export class Avatar {
   }
   update(dt, pos, groundY, facing, y, info) {
     if (!this.ready) return;
-    const want = !info.grounded ? 'Jump_Idle'
-      : info.speed > 6 ? 'Run'
-      : info.speed > 0.3 ? 'Walk'
-      : 'Idle';
-    const { resolved } = this._setState(want);
-    const cur = this.current;
-    if (cur) {
-      // 진짜 Idle 클립이 없어 Run으로 대체하는 경우: 재생을 멈춰 '가만히 서 있게'.
-      const fakingIdle = want === 'Idle' && resolved !== 'Idle';
-      if (fakingIdle) {
-        cur.paused = true;
-        cur.time = Avatar.IDLE_FRAC * cur.getClip().duration;
-      } else {
-        cur.paused = false;
-        cur.timeScale = 1;
+    if (info.grounded) {
+      // 지면: 속도에 따라 상태 선택.
+      const want = info.speed > 6 ? 'Run' : info.speed > 0.3 ? 'Walk' : 'Idle';
+      const { resolved } = this._setState(want);
+      const cur = this.current;
+      if (cur) {
+        const fakingIdle = want === 'Idle' && resolved !== 'Idle';
+        if (fakingIdle) { cur.paused = true; cur.time = Avatar.IDLE_FRAC * cur.getClip().duration; }
+        else { cur.paused = false; cur.timeScale = 1; }
       }
+    } else if (this.current) {
+      // 공중: 이륙 순간의 애니를 그 프레임에 정지.
+      // 서서 점프 → Idle 포즈 유지, 달리다 점프 → 달리던 포즈 그대로 멈춤(발 안 젓음).
+      this.current.paused = true;
     }
     this.group.position.set(pos.x, groundY + y, pos.z);
     this.group.rotation.y = facing + Math.PI; // 이 모델 기본 전방 = +Z → 진행 방향으로 보정
