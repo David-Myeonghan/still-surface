@@ -35,19 +35,14 @@ scene.add(rim);
 // IBL: PBR 재질(특히 바이저)에 반사 환경. 에셋 없이 RoomEnvironment로 생성.
 const pmrem = new THREE.PMREMGenerator(engine.renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-scene.environmentIntensity = 0.35; // 무드 유지: IBL은 은은하게
+scene.environmentIntensity = 0.5; // 무드 유지하되 아머가 읽히게
 
 const sky = buildSky(scene, SEED);
 scene.add(buildTerrain(SEED));
 const artifactObjs = buildArtifacts(scene, SEED);
 const avatar = new Avatar();
 avatar.load(`${import.meta.env.BASE_URL}models/astronaut.glb`)
-  .then(() => {
-    avatar.group.traverse((o) => {
-      if (o.isMesh && o.material) { o.material.envMapIntensity = 1.2; o.material.needsUpdate = true; }
-    });
-    scene.add(avatar.group);
-  })
+  .then(() => { scene.add(avatar.group); })
   .catch((e) => console.error('avatar load failed', e));
 const dust = createDust(scene);
 const blob = createBlobShadow(scene);

@@ -1,5 +1,6 @@
 # 3D 에셋 크레딧
 
-- `astronaut.glb` — **플레이스홀더**: Quaternius "Finn the Frog" (CC0 1.0, 리깅 + 18 애니메이션).
-  출처: https://quaternius.com / https://poly.pizza/m/0D54W8yfrA
-  → Mixamo 실사 우주인(In Place: Running/Idle/Jump)으로 교체 예정. 로더는 모델 무관.
+- `astronaut.glb` — Mixamo (Adobe) 캐릭터 "Ch44" + "Standard Run" 애니메이션.
+  라이선스: Mixamo 로열티 프리(상업/개인 사용 가능, 저작자 표시 불필요). 게임에 baked하여 사용.
+  파이프라인: Mixamo FBX(With Skin, In-Place, 60fps) → fbx2gltf → gltf-transform optimize
+  (텍스처 1024 WebP + meshopt). 결과 ~0.8MB, 42k 삼각형.
