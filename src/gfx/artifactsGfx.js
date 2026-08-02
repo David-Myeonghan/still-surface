@@ -16,10 +16,10 @@ export function buildArtifacts(scene, seed) {
     core.position.y = 2.6;
 
     const beam = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.8, 2.0, 150, 16, 1, true),
+      new THREE.CylinderGeometry(0.7, 1.6, 240, 16, 1, true),
       new THREE.MeshBasicMaterial({ color: 0x7ff4ff, transparent: true, opacity: 0.5, side: THREE.DoubleSide, depthWrite: false, fog: false, blending: THREE.AdditiveBlending }),
     );
-    beam.position.y = 75;
+    beam.position.y = 120;
 
     const light = new THREE.PointLight(0x4fe0ff, 8, 40, 2);
     light.position.y = 3;
