@@ -8,6 +8,8 @@ import { buildSky } from './gfx/sky.js';
 import { buildArtifacts, markScanned } from './gfx/artifactsGfx.js';
 import { Avatar } from './gfx/Avatar.js';
 import { createDust } from './gfx/dust.js';
+import { placeMotes, collectMotes } from './game/motes.js';
+import { buildMotes } from './gfx/motesGfx.js';
 import { Post } from './gfx/postfx.js';
 import { createGame, tickScan, scanProgress } from './game/state.js';
 import { placeArtifacts } from './gen/artifacts.js';
@@ -35,6 +37,9 @@ avatar.load(`${import.meta.env.BASE_URL}models/astronaut.glb`)
 const dust = createDust(scene);
 const game = createGame(placeArtifacts(SEED), { scanSeconds: 2.5, radius: 7 });
 const hud = new HUD();
+const motes = placeMotes(SEED, game.artifacts, (x, z) => height(x, z, SEED));
+const motesGfx = buildMotes(scene, motes);
+let motesCollected = 0;
 const finale = new Finale(scene, sky.mat);
 const audio = new Audio();
 
@@ -73,6 +78,16 @@ function tick(now) {
     if (player.justJumped) audio.jump();
     if (player.justLanded) { audio.land(); dust.burst(player.pos.x, player.groundY, player.pos.z); }
     dust.update(dt);
+
+    // 에너지 모트 수집(빵부스러기)
+    const got = collectMotes(motes, { x: player.pos.x, z: player.pos.z }, 3.5);
+    if (got > 0) {
+      motesCollected += got;
+      for (const m of motes) if (m.collected) motesGfx.collect(m.id);
+      audio.mote();
+      hud.setMotes(motesCollected);
+    }
+    motesGfx.update(dt);
     const targetFov = player.running ? 82 : 68;
     if (Math.abs(camera.fov - targetFov) > 0.1) {
       camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 6);
@@ -119,8 +134,10 @@ window.__ss = () => ({
   pos: { x: player.pos.x, z: player.pos.z },
   locked: input.locked, started,
   scanned: game.scanned, total: game.total, status: game.status,
+  motes: motesCollected, motesTotal: motes.length,
   progress: scanProgress(game),
   artifacts: game.artifacts.map((a) => ({ id: a.id, x: a.x, z: a.z, scanned: a.scanned })),
 });
 window.__teleport = (x, z) => { player.pos.set(x, 0, z); };
+window.__motePos = () => motes.map((m) => ({ x: m.x, z: m.z, collected: m.collected }));
 window.__lookAt = (x, z) => { player.yaw = Math.atan2(x - player.pos.x, z - player.pos.z); player.pitch = -0.05; };

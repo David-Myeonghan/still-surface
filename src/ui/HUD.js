@@ -10,10 +10,12 @@ export class HUD {
     this.progress = g('progress'); this.needle = g('needle'); this.cdist = g('cdist');
     this.prompt = g('prompt'); this.ring = g('ring'); this.rfill = g('rfill');
     this.lore = g('lore'); this.ending = g('ending');
+    this.moteCount = g('moteCount');
     this.rfill.style.strokeDasharray = `${RING_LEN}`;
     this._loreTimer = 0;
   }
   show() { this.root.classList.add('on'); }
+  setMotes(n) { if (this.moteCount) this.moteCount.textContent = `${n}`; }
   update(game, player, dt) {
     this.progress.textContent = `${game.scanned} / ${game.total}`;
     // 나침반: 가장 가까운 미스캔 방향을 플레이어 시야 기준으로 회전
@@ -35,7 +37,7 @@ export class HUD {
   }
   enterFinale() {
     // 피날레 진입: 플레이 HUD(진행도·나침반·프롬프트·링) 숨김. 로어·엔딩만 유지.
-    for (const el of [this.progress, this.needle, this.cdist, this.prompt, this.ring]) el.style.display = 'none';
+    for (const el of [this.progress, this.needle, this.cdist, this.prompt, this.ring, document.getElementById('motes')]) el && (el.style.display = 'none');
   }
   showLore(text) { this.lore.textContent = text; this.lore.classList.add('on'); this._loreTimer = 6; }
   showEnding() { this.ending.classList.add('on'); }
