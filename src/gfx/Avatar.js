@@ -25,6 +25,8 @@ const FALLBACK = {
 
 // 리깅된 GLTF 아바타 로드 + 상태 기반 애니메이션 크로스페이드.
 export class Avatar {
+  // Idle 클립이 없을 때 Run 클립에서 '서 있는' 느낌에 가장 가까운 정지 프레임(0~1).
+  static IDLE_FRAC = 0.0;
   constructor() {
     this.ready = false;
     this.group = null;
@@ -79,8 +81,18 @@ export class Avatar {
       : info.speed > 0.3 ? 'Walk'
       : 'Idle';
     const { resolved } = this._setState(want);
-    // 진짜 Idle 클립이 없어 Run으로 대체 중이면 느리게 재생(제자리 조깅 완화).
-    if (this.current) this.current.timeScale = (want === 'Idle' && resolved === 'Run') ? 0.35 : 1;
+    const cur = this.current;
+    if (cur) {
+      // 진짜 Idle 클립이 없어 Run으로 대체하는 경우: 재생을 멈춰 '가만히 서 있게'.
+      const fakingIdle = want === 'Idle' && resolved !== 'Idle';
+      if (fakingIdle) {
+        cur.paused = true;
+        cur.time = Avatar.IDLE_FRAC * cur.getClip().duration;
+      } else {
+        cur.paused = false;
+        cur.timeScale = 1;
+      }
+    }
     this.group.position.set(pos.x, groundY + y, pos.z);
     this.group.rotation.y = facing + Math.PI; // 이 모델 기본 전방 = +Z → 진행 방향으로 보정
     this.mixer.update(dt);

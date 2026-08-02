@@ -153,4 +153,5 @@ window.__ss = () => ({
 });
 window.__teleport = (x, z) => { player.pos.set(x, 0, z); };
 window.__motePos = () => motes.map((m) => ({ x: m.x, z: m.z, collected: m.collected }));
+window.__avatar = avatar;
 window.__lookAt = (x, z) => { player.yaw = Math.atan2(x - player.pos.x, z - player.pos.z); player.pitch = -0.05; };
