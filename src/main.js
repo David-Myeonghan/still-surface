@@ -6,7 +6,7 @@ import { height } from './gen/terrain.js';
 import { buildTerrain } from './gfx/terrainMesh.js';
 import { buildSky } from './gfx/sky.js';
 import { buildArtifacts, markScanned } from './gfx/artifactsGfx.js';
-import { buildCharacter, animateRun } from './gfx/Character.js';
+import { Avatar } from './gfx/Avatar.js';
 import { Post } from './gfx/postfx.js';
 import { createGame, tickScan, scanProgress } from './game/state.js';
 import { placeArtifacts } from './gen/artifacts.js';
@@ -27,8 +27,10 @@ scene.add(sun);
 const sky = buildSky(scene, SEED);
 scene.add(buildTerrain(SEED));
 const artifactObjs = buildArtifacts(scene, SEED);
-const char = buildCharacter();
-scene.add(char.group);
+const avatar = new Avatar();
+avatar.load(`${import.meta.env.BASE_URL}models/astronaut.glb`)
+  .then(() => { scene.add(avatar.group); })
+  .catch((e) => console.error('avatar load failed', e));
 const game = createGame(placeArtifacts(SEED), { scanSeconds: 2.5, radius: 7 });
 const hud = new HUD();
 const finale = new Finale(scene, sky.mat);
@@ -63,9 +65,9 @@ function tick(now) {
     player.update(dt, input);
     camera.position.copy(player.camPos);
     camera.lookAt(player.headTarget);
-    char.group.position.set(player.pos.x, player.groundY, player.pos.z);
-    char.group.rotation.y = player.facing;
-    animateRun(char.parts, player.stride, player.moving, player.running);
+    const hs = Math.hypot(player.vel.x, player.vel.z);
+    avatar.update(dt, player.pos, player.groundY, player.facing, 0,
+      { speed: hs, running: player.running, grounded: true });
     const targetFov = player.running ? 82 : 68;
     if (Math.abs(camera.fov - targetFov) > 0.1) {
       camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 6);
@@ -85,7 +87,7 @@ function tick(now) {
         finale.start(player.pos.x, player.pos.z, height(player.pos.x, player.pos.z, SEED));
         hud.enterFinale();
         audio.finale();
-        char.group.visible = false;
+        avatar.setVisible(false);
       }
     }
     // 코어 회전(살아있는 느낌)
