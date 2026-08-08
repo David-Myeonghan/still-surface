@@ -135,6 +135,16 @@ export class Audio {
     g.gain.exponentialRampToValueAtTime(0.16, t + 0.01); g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
     o.connect(g); g.connect(this.master); o.start(t); o.stop(t + 0.22);
   }
+  // 대시: 짧은 휙 소리(하강 스윕).
+  dash() {
+    if (!this.ready) return;
+    const ctx = this.ctx, t = ctx.currentTime;
+    const o = ctx.createOscillator(); o.type = 'sawtooth';
+    o.frequency.setValueAtTime(700, t); o.frequency.exponentialRampToValueAtTime(180, t + 0.25);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.001, t);
+    g.gain.exponentialRampToValueAtTime(0.12, t + 0.02); g.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+    o.connect(g); g.connect(this.master); o.start(t); o.stop(t + 0.3);
+  }
   // 모트 픽업: 맑은 고음 블립.
   mote() {
     if (!this.ready) return;

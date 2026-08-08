@@ -122,6 +122,14 @@ function tick(now) {
     if (player.justLanded) { audio.land(); dust.burst(player.pos.x, player.groundY, player.pos.z); }
     dust.update(dt);
 
+    // 모트를 태워 대시
+    if (input.consumeDash() && player.canDash() && motesCollected >= DASH_COST) {
+      motesCollected -= DASH_COST;
+      player.dash();
+      hud.setMotes(motesCollected);
+      audio.dash();
+    }
+
     // 에너지 모트 수집(빵부스러기)
     const got = collectMotes(motes, { x: player.pos.x, z: player.pos.z }, 3.5);
     if (got > 0) {

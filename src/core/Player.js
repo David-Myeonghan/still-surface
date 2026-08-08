@@ -3,6 +3,7 @@ import { moveDir, stepAngle, thirdPersonCam, integrateVertical } from '../game/l
 
 const HEAD = 1.6, DIST = 5.2, WALK = 4.5, RUN = 9.0;
 const GRAVITY = 6.5, JUMP_V = 6.5, COYOTE = 0.12;
+const DASH_MULT = 2.4, DASH_DUR = 0.35, DASH_CD = 0.6;
 const PITCH_MIN = -0.35, PITCH_MAX = 1.25;
 
 export class Player {
@@ -18,6 +19,7 @@ export class Player {
     this.moving = false; this.running = false;
     this.y = 0; this.vy = 0; this.grounded = true; this.coyote = COYOTE;
     this.justJumped = false; this.justLanded = false;
+    this.dashTime = 0; this.dashCd = 0;
     this.camPos = new THREE.Vector3(0, HEAD, DIST);
     this.headTarget = new THREE.Vector3();
     this._target = new THREE.Vector3();
@@ -26,10 +28,15 @@ export class Player {
     this.yaw -= dx * 0.0022 * sens;
     this.pitch = THREE.MathUtils.clamp(this.pitch + dy * 0.0022 * sens, PITCH_MIN, PITCH_MAX);
   }
+  canDash() { return this.dashCd <= 0; }
+  dash() { if (this.dashCd <= 0) { this.dashTime = DASH_DUR; this.dashCd = DASH_CD; } }
   update(dt, input) {
+    this.dashTime = Math.max(0, this.dashTime - dt);
+    this.dashCd = Math.max(0, this.dashCd - dt);
     const mv = input.getMove();
     const run = mv.run;
-    const speed = run ? RUN : WALK;
+    let speed = run ? RUN : WALK;
+    if (this.dashTime > 0) speed *= DASH_MULT;
     const d = moveDir(mv.forward, mv.strafe, this.yaw);
     this._target.set(d.x * speed, 0, d.z * speed);
     this.vel.lerp(this._target, Math.min(1, dt * 12));

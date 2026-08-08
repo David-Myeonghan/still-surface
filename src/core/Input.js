@@ -7,7 +7,8 @@ export class Input {
     this._acc = { x: 0, y: 0 };
     // 터치 의도(TouchControls가 기록). active=false면 키보드 사용.
     this.touch = { active: false, forward: 0, strafe: 0, run: false, jump: false, scan: false };
-    addEventListener('keydown', (e) => this.keys.add(e.code));
+    this._dash = false;
+    addEventListener('keydown', (e) => { this.keys.add(e.code); if (e.code === 'KeyE' && !e.repeat) this._dash = true; });
     addEventListener('keyup', (e) => this.keys.delete(e.code));
     canvas.addEventListener('mousedown', (e) => { if (e.button === 0 && !this.locked) canvas.requestPointerLock?.(); });
     document.addEventListener('pointerlockchange', () => { this.locked = document.pointerLockElement === canvas; });
@@ -27,4 +28,6 @@ export class Input {
   }
   isJump() { return this.held('Space') || this.touch.jump; }
   isScan() { return this.held('KeyF') || this.touch.scan; }
+  dashPulse() { this._dash = true; }
+  consumeDash() { const d = this._dash; this._dash = false; return d; }
 }

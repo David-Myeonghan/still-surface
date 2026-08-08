@@ -25,12 +25,14 @@ export class TouchControls {
     root.innerHTML =
       '<div id="tJoy" class="t-joy"><div id="tThumb" class="t-thumb"></div></div>'
       + '<button id="tJump" class="t-btn t-jump">JUMP</button>'
-      + '<button id="tScan" class="t-btn t-scan">SCAN</button>';
+      + '<button id="tScan" class="t-btn t-scan">SCAN</button>'
+      + '<button id="tDash" class="t-btn t-dash">DASH</button>';
     document.body.appendChild(root);
     this.joy = root.querySelector('#tJoy');
     this.thumb = root.querySelector('#tThumb');
     this.jumpBtn = root.querySelector('#tJump');
     this.scanBtn = root.querySelector('#tScan');
+    this.dashBtn = root.querySelector('#tDash');
     this.scanBtn.style.display = 'none';
   }
   _isBtn(tc) { return tc && tc.target && tc.target.closest && tc.target.closest('.t-btn'); }
@@ -77,6 +79,7 @@ export class TouchControls {
     this.jumpBtn.addEventListener('touchend', (e) => { e.preventDefault(); t.jump = false; }, { passive: false });
     this.scanBtn.addEventListener('touchstart', (e) => { e.preventDefault(); t.scan = true; }, { passive: false });
     this.scanBtn.addEventListener('touchend', (e) => { e.preventDefault(); t.scan = false; }, { passive: false });
+    this.dashBtn.addEventListener('touchstart', (e) => { e.preventDefault(); this.input.dashPulse(); }, { passive: false });
   }
   setScanAvailable(v) {
     if (!this.enabled) return;

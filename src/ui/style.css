@@ -42,3 +42,4 @@ body { touch-action: none; overscroll-behavior: none; }
 .e-btns { margin-top: 22px; display: flex; gap: 12px; justify-content: center; }
 .e-btn { pointer-events: auto; padding: 12px 20px; font: 700 14px system-ui, sans-serif; color: #cdd6ff; background: #1a2036; border: 1px solid #3a4670; border-radius: 10px; cursor: pointer; }
 .e-btn:hover { background: #232b48; }
+.t-dash { bottom: 216px; border-color: rgba(127,244,255,0.6); }
