@@ -21,8 +21,16 @@ import { nearestUnscanned } from './game/compass.js';
 import { Finale } from './game/finale.js';
 import { Audio } from './audio/Audio.js';
 import lore from '../data/lore.js';
+import { dailySeed, parseSeed, formatTime, bestKey } from './game/session.js';
 
-const SEED = 1337;
+const params = new URLSearchParams(location.search);
+const ymd = new Date().toISOString().slice(0, 10); // UTC YYYY-MM-DD
+let MODE = 'free';
+let SEED = Math.floor(Math.random() * 1e9);
+if (params.has('daily')) { SEED = dailySeed(ymd); MODE = 'daily'; }
+else { const s = parseSeed(params.get('seed')); if (s != null) { SEED = s; MODE = 'seed'; } }
+const AUTO_START = params.has('daily') || params.get('seed') != null;
+const DASH_COST = 2;
 
 const engine = new Engine(document.getElementById('scene'));
 const { scene, camera } = engine;
@@ -67,6 +75,8 @@ let last = performance.now();
 const MAX_DT = 1 / 15;
 let started = false;
 let endingShown = false;
+let tStart = null;      // 플레이 시작 시각(ms)
+let finishMs = null;    // 완료 시각(ms) — 타이머 정지
 
 function tick(now) {
   requestAnimationFrame(tick);
@@ -137,12 +147,15 @@ function tick(now) {
   post.render();
 }
 
-document.getElementById('bootStart').addEventListener('click', () => {
+function begin() {
   document.getElementById('boot').style.display = 'none';
   started = true;
+  tStart = performance.now();
   hud.show();
   audio.start();
-});
+}
+document.getElementById('bootStart').addEventListener('click', begin);
+if (AUTO_START) begin(); // 재시작(시드/데일리)은 부팅 스킵. 오디오는 첫 입력에서 resume.
 
 requestAnimationFrame(tick);
 
@@ -152,6 +165,7 @@ window.__ss = () => ({
   pos: { x: player.pos.x, z: player.pos.z },
   locked: input.locked, started,
   scanned: game.scanned, total: game.total, status: game.status,
+  seed: SEED, mode: MODE,
   motes: motesCollected, motesTotal: motes.length,
   y: player.y, grounded: player.grounded, yaw: player.yaw,
   progress: scanProgress(game),
