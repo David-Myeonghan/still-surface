@@ -43,6 +43,7 @@ Bloom과 함께 "팝인"한다. 발견 → 스캔 → 보상(로어 + 다음 비
 - **절차 생성:** value-noise FBM 지형, seed 결정론(mulberry32). 같은 seed = 같은 세계.
 - **후처리:** UnrealBloomPass가 emissive 비콘/빛기둥을 발광시켜 원거리 가시성을 만든다.
 - **사운드:** WebAudio only — 앰비언트 드론, 상승하는 스캔 톤, 발견 차임, 피날레 스웰.
+- **입력 추상화:** 키보드/마우스와 터치를 하나의 의도 API(`getMove/consumeLook/isJump/isScan`)로 통합 — 데스크톱·모바일 모두 지원. 조이스틱 벡터 수학은 순수 모듈(`touchMath`)로 단위 검증.
 
 ## 검증
 
