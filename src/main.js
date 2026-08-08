@@ -16,6 +16,8 @@ import { Post } from './gfx/postfx.js';
 import { createGame, tickScan, scanProgress } from './game/state.js';
 import { placeArtifacts } from './gen/artifacts.js';
 import { HUD } from './ui/HUD.js';
+import { TouchControls } from './ui/TouchControls.js';
+import { nearestUnscanned } from './game/compass.js';
 import { Finale } from './game/finale.js';
 import { Audio } from './audio/Audio.js';
 import lore from '../data/lore.js';
@@ -57,6 +59,7 @@ const audio = new Audio();
 const post = new Post(engine.renderer, scene, camera);
 
 const input = new Input(document.getElementById('scene'));
+const touch = new TouchControls(input);
 const player = new Player((x, z) => height(x, z, SEED)); // 지형 접지
 player.pos.set(0, 0, 0);
 
@@ -107,6 +110,8 @@ function tick(now) {
     }
 
     // 스캔 (F 홀드)
+    const nu = nearestUnscanned(game, { x: player.pos.x, z: player.pos.z });
+    touch.setScanAvailable(!!nu && nu.dist <= game.radius);
     const scanning = input.isScan();
     const { justScanned } = tickScan(game, { x: player.pos.x, z: player.pos.z }, scanning, dt);
     audio.scanTone(game.scanning != null && scanning, scanProgress(game));
@@ -148,7 +153,7 @@ window.__ss = () => ({
   locked: input.locked, started,
   scanned: game.scanned, total: game.total, status: game.status,
   motes: motesCollected, motesTotal: motes.length,
-  y: player.y, grounded: player.grounded,
+  y: player.y, grounded: player.grounded, yaw: player.yaw,
   progress: scanProgress(game),
   artifacts: game.artifacts.map((a) => ({ id: a.id, x: a.x, z: a.z, scanned: a.scanned })),
 });
