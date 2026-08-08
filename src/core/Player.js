@@ -27,11 +27,10 @@ export class Player {
     this.pitch = THREE.MathUtils.clamp(this.pitch + dy * 0.0022 * sens, PITCH_MIN, PITCH_MAX);
   }
   update(dt, input) {
-    const run = input.held('ShiftLeft');
+    const mv = input.getMove();
+    const run = mv.run;
     const speed = run ? RUN : WALK;
-    const fwd = (input.held('KeyW') ? 1 : 0) - (input.held('KeyS') ? 1 : 0);
-    const str = (input.held('KeyD') ? 1 : 0) - (input.held('KeyA') ? 1 : 0);
-    const d = moveDir(fwd, str, this.yaw);
+    const d = moveDir(mv.forward, mv.strafe, this.yaw);
     this._target.set(d.x * speed, 0, d.z * speed);
     this.vel.lerp(this._target, Math.min(1, dt * 12));
     this.pos.x += this.vel.x * dt; this.pos.z += this.vel.z * dt;
@@ -52,7 +51,7 @@ export class Player {
     // 저중력 수직 물리 (Space 점프)
     const vr = integrateVertical(
       { y: this.y, vy: this.vy, grounded: this.grounded, coyote: this.coyote },
-      dt, input.held('Space'), GRAVITY, JUMP_V, COYOTE,
+      dt, input.isJump(), GRAVITY, JUMP_V, COYOTE,
     );
     this.y = vr.y; this.vy = vr.vy; this.grounded = vr.grounded; this.coyote = vr.coyote;
     this.justJumped = vr.justJumped; this.justLanded = vr.justLanded;

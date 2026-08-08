@@ -78,7 +78,7 @@ function tick(now) {
   }
 
   if (started) {
-    const m = input.consumeMouse();
+    const m = input.consumeLook();
     player.look(m.x, m.y);
     player.update(dt, input);
     camera.position.copy(player.camPos);
@@ -107,9 +107,9 @@ function tick(now) {
     }
 
     // 스캔 (F 홀드)
-    const holdingF = input.held('KeyF');
-    const { justScanned } = tickScan(game, { x: player.pos.x, z: player.pos.z }, holdingF, dt);
-    audio.scanTone(game.scanning != null && holdingF, scanProgress(game));
+    const scanning = input.isScan();
+    const { justScanned } = tickScan(game, { x: player.pos.x, z: player.pos.z }, scanning, dt);
+    audio.scanTone(game.scanning != null && scanning, scanProgress(game));
     if (justScanned != null) {
       const obj = artifactObjs.find((o) => o.id === justScanned);
       if (obj) markScanned(obj);
