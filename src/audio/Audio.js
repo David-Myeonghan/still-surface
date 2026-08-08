@@ -1,3 +1,18 @@
+// 무음 WAV 데이터 URI 생성(에셋 없이). iOS 미디어 채널 승격용.
+function silentWav(seconds = 0.4, rate = 8000) {
+  const n = Math.floor(seconds * rate);
+  const bytes = 44 + n * 2;
+  const buf = new ArrayBuffer(bytes); const dv = new DataView(buf);
+  const wr = (o, s) => { for (let i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i)); };
+  wr(0, 'RIFF'); dv.setUint32(4, bytes - 8, true); wr(8, 'WAVE'); wr(12, 'fmt ');
+  dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
+  dv.setUint32(24, rate, true); dv.setUint32(28, rate * 2, true);
+  dv.setUint16(32, 2, true); dv.setUint16(34, 16, true); wr(36, 'data'); dv.setUint32(40, n * 2, true);
+  let bin = ''; const u8 = new Uint8Array(buf);
+  for (let i = 0; i < u8.length; i++) bin += String.fromCharCode(u8[i]);
+  return 'data:audio/wav;base64,' + btoa(bin);
+}
+
 // 순수 WebAudio 사운드(무의존). 유저 제스처(탐사 시작) 이후에만 resume.
 export class Audio {
   constructor() {
@@ -17,8 +32,27 @@ export class Audio {
     this.ready = true;
     // 모바일(특히 iOS Safari)은 AudioContext가 suspended로 시작 → 제스처 내에서 resume 필수.
     this.ctx.resume?.();
-    // 폴백: 이후 첫 입력에서도 suspended면 재개(백그라운드 복귀 등).
-    const resume = () => { if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); };
+    // iOS 잠금 해제: 무음 버퍼 1회 재생(일부 iOS는 resume만으론 무음).
+    try {
+      const b = this.ctx.createBuffer(1, 1, 22050);
+      const s = this.ctx.createBufferSource(); s.buffer = b; s.connect(this.ctx.destination); s.start(0);
+    } catch { /* noop */ }
+    // iOS 무음 스위치 우회: 무음 루프 오디오 엘리먼트를 미디어 채널로 재생 → WebAudio도 미디어 채널로 승격.
+    // (클래스명이 Audio라 전역 충돌 피하려고 createElement 사용)
+    if (!this._silentEl) {
+      try {
+        const el = document.createElement('audio');
+        el.src = silentWav();
+        el.loop = true; el.volume = 1; el.setAttribute('playsinline', '');
+        el.play().catch(() => { /* noop */ });
+        this._silentEl = el;
+      } catch { /* noop */ }
+    }
+    // 폴백: 이후 첫 입력에서도 suspended면 재개 + 미디어 엘리먼트 재생.
+    const resume = () => {
+      if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+      if (this._silentEl && this._silentEl.paused) this._silentEl.play().catch(() => {});
+    };
     addEventListener('touchstart', resume, { passive: true });
     addEventListener('pointerdown', resume, { passive: true });
     addEventListener('keydown', resume);
