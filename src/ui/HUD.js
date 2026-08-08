@@ -40,5 +40,15 @@ export class HUD {
     for (const el of [this.progress, this.needle, this.cdist, this.prompt, this.ring, document.getElementById('motes')]) el && (el.style.display = 'none');
   }
   showLore(text) { this.lore.textContent = text; this.lore.classList.add('on'); this._loreTimer = 6; }
-  showEnding() { this.ending.classList.add('on'); }
+  showEnding(stats) {
+    if (stats) {
+      const el = document.getElementById('eStats');
+      if (el) {
+        el.innerHTML =
+          `시간 <b>${stats.time}</b><br>모트 ✦ ${stats.motes} · 행성 #${stats.seed}`
+          + (stats.best ? `<br><span class="best">${stats.isBest ? '새 기록! ' : '최고 '}${stats.best}</span>` : '');
+      }
+    }
+    this.ending.classList.add('on');
+  }
 }

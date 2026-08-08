@@ -35,3 +35,10 @@
 .t-scan { bottom: 122px; border-color: rgba(255,208,122,0.7); color: #ffd07a; }
 @media (pointer: fine) { #touch { display: none; } }
 body { touch-action: none; overscroll-behavior: none; }
+
+/* 결과(엔딩) 화면 */
+.e-stats { margin-top: 18px; font-size: 16px; line-height: 1.8; color: #dfe8ff; text-align: center; }
+.e-stats .best { color: #7ff4ff; font-weight: 700; }
+.e-btns { margin-top: 22px; display: flex; gap: 12px; justify-content: center; }
+.e-btn { pointer-events: auto; padding: 12px 20px; font: 700 14px system-ui, sans-serif; color: #cdd6ff; background: #1a2036; border: 1px solid #3a4670; border-radius: 10px; cursor: pointer; }
+.e-btn:hover { background: #232b48; }

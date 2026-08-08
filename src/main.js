@@ -85,7 +85,25 @@ function tick(now) {
   if (started && finale.active) {
     finale.update(dt, camera);
     for (const o of artifactObjs) o.core.rotation.y += dt * 0.8;
-    if (finale.done && !endingShown) { endingShown = true; hud.showEnding(); }
+    if (finale.done && !endingShown) {
+      endingShown = true;
+      const sec = ((finishMs ?? performance.now()) - tStart) / 1000;
+      const time = formatTime(sec);
+      let best = null, isBest = false;
+      try {
+        if (MODE === 'daily') {
+          const k = bestKey('daily'); const prev = JSON.parse(localStorage.getItem(k) || 'null');
+          const cur = prev && prev.ymd === ymd ? prev.sec : null;
+          if (cur == null || sec < cur) { isBest = true; localStorage.setItem(k, JSON.stringify({ ymd, sec })); best = formatTime(sec); }
+          else best = formatTime(cur);
+        } else {
+          const k = bestKey('free'); const prev = parseFloat(localStorage.getItem(k) || 'NaN');
+          if (Number.isNaN(prev) || sec < prev) { isBest = true; localStorage.setItem(k, String(sec)); best = time; }
+          else best = formatTime(prev);
+        }
+      } catch { /* localStorage 불가 시 무시 */ }
+      hud.showEnding({ time, motes: motesCollected, seed: SEED, best, isBest });
+    }
     post.render();
     return;
   }
@@ -134,6 +152,7 @@ function tick(now) {
         finale.start(player.pos.x, player.pos.z, height(player.pos.x, player.pos.z, SEED));
         hud.enterFinale();
         audio.finale();
+        finishMs = performance.now();
         avatar.setVisible(false);
         blob.update(0, 0, -9999, 0); // 화면 밖으로
       }
@@ -158,6 +177,14 @@ document.getElementById('bootStart').addEventListener('click', begin);
 if (AUTO_START) begin(); // 재시작(시드/데일리)은 부팅 스킵. 오디오는 첫 입력에서 resume.
 
 requestAnimationFrame(tick);
+
+const base = location.pathname;
+document.getElementById('againBtn').addEventListener('click', () => {
+  location.href = `${base}?seed=${Math.floor(Math.random() * 1e9)}`;
+});
+document.getElementById('dailyBtn').addEventListener('click', () => {
+  location.href = `${base}?daily=1`;
+});
 
 // E2E 디버그 훅
 window.__ssGame = game;
