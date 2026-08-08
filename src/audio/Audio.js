@@ -3,9 +3,9 @@ export class Audio {
   constructor() {
     this.ctx = null; this.master = null; this.drone = null; this._scanOsc = null; this.ready = false;
   }
-  // bootStart 클릭 시 호출 — AudioContext는 제스처 이후 생성/resume해야 함.
+  // bootStart 탭/클릭(사용자 제스처) 시 호출.
   start() {
-    if (this.ready) return;
+    if (this.ready) { this.ctx?.resume?.(); return; }
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     this.ctx = new AC();
@@ -15,6 +15,13 @@ export class Audio {
     this.master.gain.linearRampToValueAtTime(0.5, this.ctx.currentTime + 2.0);
     this._buildDrone();
     this.ready = true;
+    // 모바일(특히 iOS Safari)은 AudioContext가 suspended로 시작 → 제스처 내에서 resume 필수.
+    this.ctx.resume?.();
+    // 폴백: 이후 첫 입력에서도 suspended면 재개(백그라운드 복귀 등).
+    const resume = () => { if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); };
+    addEventListener('touchstart', resume, { passive: true });
+    addEventListener('pointerdown', resume, { passive: true });
+    addEventListener('keydown', resume);
   }
   _buildDrone() {
     const ctx = this.ctx;
