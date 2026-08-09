@@ -43,3 +43,8 @@ body { touch-action: none; overscroll-behavior: none; }
 .e-btn { pointer-events: auto; padding: 12px 20px; font: 700 14px system-ui, sans-serif; color: #cdd6ff; background: #1a2036; border: 1px solid #3a4670; border-radius: 10px; cursor: pointer; }
 .e-btn:hover { background: #232b48; }
 .t-dash { bottom: 216px; border-color: rgba(127,244,255,0.6); }
+
+/* 게임 중 조작 힌트 (데스크톱만; 모바일은 버튼 라벨로 대체) */
+.hint { position: absolute; bottom: 14px; left: 16px; font-size: 12px; line-height: 1.5; color: rgba(159,176,216,0.7); text-shadow: 0 1px 4px #000; }
+.hint b { color: rgba(127,244,255,0.85); }
+@media (pointer: coarse) { .hint { display: none; } }

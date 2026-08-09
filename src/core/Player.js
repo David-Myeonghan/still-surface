@@ -3,7 +3,7 @@ import { moveDir, stepAngle, thirdPersonCam, integrateVertical } from '../game/l
 
 const HEAD = 1.6, DIST = 5.2, WALK = 4.5, RUN = 9.0;
 const GRAVITY = 6.5, JUMP_V = 6.5, COYOTE = 0.12;
-const DASH_MULT = 2.4, DASH_DUR = 0.35, DASH_CD = 0.6;
+const DASH_MULT = 2.4, DASH_DUR = 2.5, DASH_CD = 2.5;
 const PITCH_MIN = -0.35, PITCH_MAX = 1.25;
 
 export class Player {
