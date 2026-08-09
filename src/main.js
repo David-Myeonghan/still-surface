@@ -17,6 +17,7 @@ import { Post } from './gfx/postfx.js';
 import { createGame, tickScan, scanProgress } from './game/state.js';
 import { placeArtifacts } from './gen/artifacts.js';
 import { HUD } from './ui/HUD.js';
+import { shareCard } from './ui/resultCard.js';
 import { TouchControls } from './ui/TouchControls.js';
 import { nearestUnscanned } from './game/compass.js';
 import { Finale } from './game/finale.js';
@@ -79,6 +80,7 @@ let started = false;
 let endingShown = false;
 let tStart = null;      // 플레이 시작 시각(ms)
 let finishMs = null;    // 완료 시각(ms) — 타이머 정지
+let lastStats = null;   // 결과 카드용
 
 function tick(now) {
   requestAnimationFrame(tick);
@@ -104,7 +106,8 @@ function tick(now) {
           else best = formatTime(prev);
         }
       } catch { /* localStorage 불가 시 무시 */ }
-      hud.showEnding({ time, motes: motesCollected, seed: SEED, best, isBest });
+      lastStats = { time, motes: motesCollected, seed: SEED, mode: MODE, best, isBest };
+      hud.showEnding(lastStats);
     }
     post.render();
     return;
@@ -203,6 +206,11 @@ document.getElementById('againBtn').addEventListener('click', () => {
 });
 document.getElementById('dailyBtn').addEventListener('click', () => {
   location.href = `${base}?daily=1`;
+});
+document.getElementById('cardBtn').addEventListener('click', () => {
+  if (!lastStats) return;
+  const q = MODE === 'daily' ? '?daily=1' : `?seed=${SEED}`;
+  shareCard(lastStats, `${location.origin}${base}${q}`);
 });
 
 // E2E 디버그 훅
