@@ -10,6 +10,7 @@ import { buildArtifacts, markScanned } from './gfx/artifactsGfx.js';
 import { Avatar } from './gfx/Avatar.js';
 import { createDust } from './gfx/dust.js';
 import { createBlobShadow } from './gfx/blobShadow.js';
+import { createSpeedLines } from './gfx/speedlines.js';
 import { placeMotes, collectMotes } from './game/motes.js';
 import { buildMotes } from './gfx/motesGfx.js';
 import { Post } from './gfx/postfx.js';
@@ -56,6 +57,7 @@ avatar.load(`${import.meta.env.BASE_URL}models/astronaut.glb`)
   .catch((e) => console.error('avatar load failed', e));
 const dust = createDust(scene);
 const blob = createBlobShadow(scene);
+const speedlines = createSpeedLines(scene);
 const game = createGame(placeArtifacts(SEED), { scanSeconds: 2.5, radius: 7 });
 const hud = new HUD();
 const motes = placeMotes(SEED, game.artifacts, (x, z) => height(x, z, SEED));
@@ -129,6 +131,15 @@ function tick(now) {
       hud.setMotes(motesCollected);
       audio.dash();
     }
+    // 대시 중 바람 선(속도감)
+    const dsp = Math.hypot(player.vel.x, player.vel.z);
+    if (player.dashTime > 0 && dsp > 0.1) {
+      speedlines.emit(
+        { x: player.pos.x, y: player.groundY + player.y, z: player.pos.z },
+        { x: player.vel.x / dsp, z: player.vel.z / dsp },
+      );
+    }
+    speedlines.update(dt);
 
     // 에너지 모트 수집(빵부스러기)
     const got = collectMotes(motes, { x: player.pos.x, z: player.pos.z }, 3.5);
